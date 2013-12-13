@@ -22,20 +22,8 @@ $center_lat = $_GET["lat"];
 $center_lng = $_GET["lng"];
 $radius = $_GET["radius"];
 
-// Opens a connection to a mySQL server
-/*$connection=mysql_connect (localhost, $username, $password);
-if (!$connection) {
-  die("Not connected : " . mysql_error());
-}
-
-// Set the active mySQL database
-($db_selected = mysql_select_db($database, $connection);
-if (!$db_selected) {
-  die ("Can\'t use db : " . mysql_error());
-}*/
-
 // Search the rows in the markers table
-$query = sprintf("SELECT FullAddress, Name, Latitude, Longitude, Country, Phone, ( 6371 * acos( cos( radians('%s') ) * cos( radians( Latitude ) ) * cos( radians( Longitude ) - radians('%s') ) + sin( radians('%s') ) * sin( radians( Latitude ) ) ) ) AS distance FROM %s HAVING distance < '%s' ORDER BY distance",
+$query = sprintf("SELECT Street, City, Province, PostalCode, FullAddress, Name, Latitude, Longitude, Country, Phone, ( 6371 * acos( cos( radians('%s') ) * cos( radians( Latitude ) ) * cos( radians( Longitude ) - radians('%s') ) + sin( radians('%s') ) * sin( radians( Latitude ) ) ) ) AS distance FROM %s HAVING distance < '%s' ORDER BY distance",
     mysql_real_escape_string($center_lat),
     mysql_real_escape_string($center_lng),
     mysql_real_escape_string($center_lat),
@@ -44,9 +32,7 @@ $query = sprintf("SELECT FullAddress, Name, Latitude, Longitude, Country, Phone,
 
 
 $result = $wpdb->get_results($query);
-//$result = mysql_query($query, $db);
 
-//$result = mysql_query($query);
 if (!$result) {
   die("Invalid query: " . mysql_error());
 }
@@ -56,10 +42,18 @@ echo  "<markers>\n";
 // Iterate through the rows, printing XML nodes for each
 foreach($result AS  $row)
 {
+    if(trim($row->FullAddress) == '' || trim($row->FullAddress) == null)
+    {
+        $fullAddress = $row->Street.', '.$row->City.', '.$row->Province.', '.$row->PostalCode.', '.$row->Country;
+    }
+    else
+    {
+        $fullAddress = $row->FullAddress;
+    }
   // ADD TO XML DOCUMENT NODE
   echo '<marker ';
   echo 'name="' . parseToXML($row->Name) . '" ';
-  echo 'address="' . parseToXML($row->FullAddress) . '" ';
+  echo 'address="' . parseToXML($fullAddress) . '" ';
   echo 'lat="' . $row->Latitude. '" ';
   echo 'lng="' . $row->Longitude . '" ';
   echo 'phone="' . parseToXML($row->Phone) . '" ';
@@ -69,7 +63,5 @@ foreach($result AS  $row)
 
 // End XML file
 echo "</markers>\n";
-
-//echo $response;
 ?>
     
