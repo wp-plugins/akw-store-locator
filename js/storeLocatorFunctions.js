@@ -77,7 +77,7 @@ function searchLocationsNear(center)
      }
      else
      {
-      var phone = parseFloat(markerNodes[i].getAttribute("phone"));
+      phone = markerNodes[i].getAttribute("phone");
      }
      var latlng = new google.maps.LatLng(
 	  parseFloat(markerNodes[i].getAttribute("lat")),

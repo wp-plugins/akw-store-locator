@@ -2,10 +2,10 @@
 Contributors: Pradeep
 Tags: Store locator, google maps, maps, store finder, store locations, business locator, geocoding, radius, stores
 Author URI: http://www.aroundkwhosting.com
-Version: 1.0
+Version: 1.1
 Requires at least: 3.6
 Tested up to: 3.7.1
-Stable tag: 1.0
+Stable tag: 1.1
 License: GPLv2 or later
 
 Simple, easy to install plugin to view stores around a location. Displays the results using Google map.
