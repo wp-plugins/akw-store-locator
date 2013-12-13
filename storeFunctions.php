@@ -1,6 +1,11 @@
 <?php
-    require_once('storeLocatorConfig.php');
-    include_once($_SERVER['DOCUMENT_ROOT'].'/wp-load.php' );
+    $parse_uri = explode('wp-content', __FILE__);
+    $wploadAKW = $parse_uri[0].'wp-load.php';
+    include_once($wploadAKW);
+    //include_once($_SERVER['DOCUMENT_ROOT'].'/nwsite/wp-config.php' );
+    //require_once('storeLocatorConfig.php');
+    //include_once($_SERVER['DOCUMENT_ROOT'].'/nwsite/wp-load.php' );
+
     if(isset($_POST['cmd']))
     {
         switch($_POST['cmd'])
