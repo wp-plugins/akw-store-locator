@@ -1,8 +1,11 @@
 <?php
 header("Content-type: text/xml");
-include_once($_SERVER['DOCUMENT_ROOT'].'/wp-load.php' );
-require_once( $_SERVER['DOCUMENT_ROOT'] . '/wp-config.php' );
-require_once( $_SERVER['DOCUMENT_ROOT'] . '/wp-includes/wp-db.php' );
+$parse_uri = explode('wp-content', __FILE__);
+$wploadAKW = $parse_uri[0].'wp-load.php';
+include_once($wploadAKW);
+//include_once($_SERVER['DOCUMENT_ROOT'].'/wp-load.php' );
+//require_once( $_SERVER['DOCUMENT_ROOT'] . '/wp-config.php' );
+//require_once( $_SERVER['DOCUMENT_ROOT'] . '/wp-includes/wp-db.php' );
 
 global $wpdb;
 $table_name = $wpdb->prefix."Stores";

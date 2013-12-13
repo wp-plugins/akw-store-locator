@@ -103,8 +103,8 @@ function storeLocator_stores_page ()
     
     echo '<div class="wrap">';
     echo '<h2>Stores</h2>';
-    echo '<button type="button" onclick="window.location=\'/wp-admin/admin.php?page=add_store\';">Add a new Store</button>';
-    echo '<form method="POST" action="/wp-admin/admin.php?page=storeLocator_admin">';
+    echo '<button type="button" onclick="window.location=\''.admin_url('admin.php?page=add_store').'\';">Add a new Store</button>';
+    echo '<form method="POST" action="'.admin_url('admin.php?page=storeLocator_admin').'">';
     echo '<p><input type="submit" name="deleteButton" id="deleteButton" value="Delete" />';
     echo '<br /><br /><button type="button" name="check" onclick="checkAllBoxes();">Check All</button>&nbsp;&nbsp;&nbsp;<button type="button" name="uncheck" onclick="unCheckAllBoxes();">Uncheck All</button></p>';
     echo '<table><tr><th></th><th>Name</th><th>Street</th><th>City</th><th>Province</th><th>Country</th><th>Coordinates</th><th>Action</th></tr>';
@@ -121,7 +121,7 @@ function storeLocator_stores_page ()
     
     if($count > 0)
     {
-        echo pagination($statement, $limit, $pageNo, '/wp-admin/admin.php?page=storeLocator_admin&');
+        echo pagination($statement, $limit, $pageNo, admin_url('admin.php?page=storeLocator_admin&'));
         $sql = "SELECT * FROM $table_name ORDER BY Country, Province, Name, ID ASC LIMIT $startpoint, $limit";
         $q = $wpdb->get_results($sql);
         foreach($q AS $f)
@@ -142,8 +142,8 @@ function storeLocator_stores_page ()
                 echo '<td>Yes</td>';
             }
             echo '<td>';
-            echo '<a href="/wp-admin/admin.php?page=add_store&ID='.$f->ID.'" >Edit</a> | ';
-            echo '<a href="/wp-admin/admin.php?page=storeLocator_admin&action=delete&ID='.$f->ID.'" onclick="return confirm(\'Are you sure you want to delete this store?\');" > Delete</a>';
+            echo '<a href="'.admin_url('admin.php?page=add_store&ID='.$f->ID).'" >Edit</a> | ';
+            echo '<a href="'.admin_url('admin.php?page=storeLocator_admin&action=delete&ID='.$f->ID).'" onclick="return confirm(\'Are you sure you want to delete this store?\');" > Delete</a>';
             echo '</td>';
             echo '</tr>';
         }
@@ -274,11 +274,12 @@ function storeLocator_add_stores_page()
             } //switch
         } //if
       } //if
-?> 
-        <div class="wrap">
-        <h2>Add Store</h2>
-        <button type="button" onclick="window.location='/wp-admin/admin.php?page=storeLocator_admin';">Go Back to Stores</button>
-<?php
+
+        echo '<div class="wrap">';
+        echo '<h2>Add Store</h2>';
+        echo '<button type="button" onclick="window.location=\''.admin_url('admin.php?page=storeLocator_admin').'\';">Go Back to Stores</button>';
+        
+
         if(isset($_REQUEST['ID']) && $_REQUEST['ID'] > 0)
         {
             $sql  = "SELECT Name, FullAddress, Street, City, Country, Phone, Province, Latitude, Longitude FROM $table_name\n";
@@ -286,9 +287,8 @@ function storeLocator_add_stores_page()
        
             $f = $wpdb->get_results($sql);          
         }
-?>
-        <form method="POST" action="/wp-admin/admin.php?page=add_store&ID=<?php echo $_REQUEST['ID']; ?>">
-<?php
+        
+        echo '<form method="POST" action="'.admin_url('admin.php?page=add_store&ID='.$_REQUEST['ID']).'">';
         if(isset($_REQUEST['ID']) && $_REQUEST['ID'] > 0)
         {
 ?>
@@ -607,7 +607,9 @@ function storeLocator_upload_csv_page()
             <li>For OpenOffice, Check the Edit filter Settings checkbox in the dialog box that appears when Save As is selected. In the Export of Text files dialog box, change the Field Delimiter to ':'.</li>
         </ul>
         <br />
-        <form method="post" action="/wp-admin/admin.php?page=upload_csv" enctype="multipart/form-data">
+        <?php
+        echo '<form method="post" action="'.admin_url('admin.php?page=upload_csv').'" enctype="multipart/form-data">';
+        ?>
             <fieldset>
                 <legend><h2>Upload CSV file</h2></legend>
                 <?php
