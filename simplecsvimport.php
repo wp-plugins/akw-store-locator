@@ -69,5 +69,5 @@ foreach(split($lineseparator,$csvcontent) as $line) {
 	$wpdb->query($query);
 }
 
-echo "Found a total of $lines records in this csv file.\n";
+echo "<p>Found a total of $lines records in this csv file.\n</p>";
 ?>

@@ -35,14 +35,14 @@
         }
         else
         {
-            $sql  = "SELECT ID, Street, City, Country, Province, FullAddress\n";
-            $sql .= " FROM $table_name WHERE Latitude=0.000000 AND Longitude=0.000000";
+            $sql  = "SELECT ID, Street, City, Province, Country, PostalCode\n";
+            $sql .= " FROM $table_name WHERE Latitude=0.000000 AND Longitude=0.000000 ORDER BY ID LIMIT 1";
         
             $q = $wpdb->get_results($sql);
             $responsea = "OKAY";
             foreach($q AS $r)
             {
-              $responsea .= "\n".$r->ID."|".$r->Street."|".$r->City."|".$r->Province."|".$r->Country."|".$r->FullAddress;
+              $responsea .= "\n".$r->ID."|".$r->Street."|".$r->City."|".$r->Province."|".$r->Country."|".$r->PostalCode;
             }
         }
         echo $responsea;
@@ -73,7 +73,8 @@
                       )
                     );
         $response = "OKAY";
-        //exit;
+        echo $response;
+        exit;
     }
     
     //Function to stripslashes and escape string

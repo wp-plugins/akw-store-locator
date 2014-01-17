@@ -26,7 +26,7 @@ $center_lng = $_GET["lng"];
 $radius = $_GET["radius"];
 
 // Search the rows in the markers table
-$query = sprintf("SELECT Street, City, Province, PostalCode, FullAddress, Name, Latitude, Longitude, Country, Phone, ( 6371 * acos( cos( radians('%s') ) * cos( radians( Latitude ) ) * cos( radians( Longitude ) - radians('%s') ) + sin( radians('%s') ) * sin( radians( Latitude ) ) ) ) AS distance FROM %s HAVING distance < '%s' ORDER BY distance",
+$query = sprintf("SELECT Street, City, Province, PostalCode, Name, Latitude, Longitude, Country, Phone, ( 6371 * acos( cos( radians('%s') ) * cos( radians( Latitude ) ) * cos( radians( Longitude ) - radians('%s') ) + sin( radians('%s') ) * sin( radians( Latitude ) ) ) ) AS distance FROM %s HAVING distance < '%s' ORDER BY distance",
     mysql_real_escape_string($center_lat),
     mysql_real_escape_string($center_lng),
     mysql_real_escape_string($center_lat),
@@ -45,14 +45,9 @@ echo  "<markers>\n";
 // Iterate through the rows, printing XML nodes for each
 foreach($result AS  $row)
 {
-    if(trim($row->FullAddress) == '' || trim($row->FullAddress) == null)
-    {
-        $fullAddress = $row->Street.', '.$row->City.', '.$row->Province.', '.$row->PostalCode.', '.$row->Country;
-    }
-    else
-    {
-        $fullAddress = $row->FullAddress;
-    }
+    
+    $fullAddress = $row->Street.', '.$row->City.', '.$row->Province.', '.$row->PostalCode.', '.$row->Country;
+    
   // ADD TO XML DOCUMENT NODE
   echo '<marker ';
   echo 'name="' . parseToXML($row->Name) . '" ';

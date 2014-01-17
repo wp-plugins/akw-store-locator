@@ -50,8 +50,9 @@ function installStoreTable()
             Country varchar(50) DEFAULT NULL,
             Latitude float(10,6) DEFAULT NULL,
             Longitude float(10,6) DEFAULT NULL,
-            FullAddress varchar(255) DEFAULT NULL,
-            PRIMARY KEY (`ID`)
+            PreferredStore tinyint(1) DEFAULT 0,
+            CustomInfo varchar(255) DEFAULT NULL,
+            PRIMARY KEY  (`ID`)
         );";
         require_once(ABSPATH."wp-admin/includes/upgrade.php");
         dbDelta($sql);
@@ -67,6 +68,7 @@ function akwUnregisterScripts()
     wp_dequeue_script('addakwadminjsfunctions');
     wp_dequeue_style('addPaginationStyle1');
     wp_dequeue_style('addPaginationStyle2');
+    wp_dequeue_style('addAKWStoreLocatorCss');
 }
 
 
@@ -107,7 +109,7 @@ function storeLocator_stores_page ()
     echo '<form method="POST" action="'.admin_url('admin.php?page=storeLocator_admin').'">';
     echo '<p><input type="submit" name="deleteButton" id="deleteButton" value="Delete" />';
     echo '<br /><br /><button type="button" name="check" onclick="checkAllBoxes();">Check All</button>&nbsp;&nbsp;&nbsp;<button type="button" name="uncheck" onclick="unCheckAllBoxes();">Uncheck All</button></p>';
-    echo '<table><tr><th></th><th>Name</th><th>Street</th><th>City</th><th>Province</th><th>Country</th><th>Coordinates</th><th>Action</th></tr>';
+    echo '<table><tr><th></th><th>Name</th><th>Street</th><th>City</th><th>Province</th><th>Country</th><th>Postal/ZIP Code</th><th>Coordinates</th><th>Action</th></tr>';
     
     //Pagination code
     $pageNo = (int) (!isset($_GET["pageNo"]) ? 1 : $_GET["pageNo"]);
@@ -133,6 +135,7 @@ function storeLocator_stores_page ()
             echo '<td>'.$f->City.'</td>';
             echo '<td>'.$f->Province.'</td>';
             echo '<td>'.$f->Country.'</td>';
+            echo '<td>'.$f->PostalCode.'</td>';
             if($f->Latitude == 0.000000)
             {
                 echo '<td>Empty</td>';    
@@ -203,7 +206,8 @@ function storeLocator_add_stores_page()
             $phone = trim($_POST['phone']);
             $latitude = trim($_POST['latitude']);
             $longitude = trim($_POST['longitude']);
-            $fullAddress = $street.', '.$city.', '.$province.', '.$country;
+            $postalCode = trim($_POST['postalCode']);
+            
             switch($_POST['action'])
             {
                 //Update store
@@ -216,7 +220,7 @@ function storeLocator_add_stores_page()
                         'City' => $city,
                         'Province' => $province,
                         'Country' => $country,
-                        'FullAddress' => $fullAddress,
+                        'PostalCode' => $postalCode,
                         'Phone' => $phone,
                         'Latitude' => $latitude,
                         'Longitude' => $longitude
@@ -225,6 +229,7 @@ function storeLocator_add_stores_page()
                         'ID' => $_POST['ID']
                       ),
                       array(
+                        '%s',
                         '%s',
                         '%s',
                         '%s',
@@ -251,12 +256,13 @@ function storeLocator_add_stores_page()
                         'City' => $city,
                         'Province' => $province,
                         'Country' => $country,
-                        'FullAddress' => $fullAddress,
+                        'PostalCode' => $postalCode,
                         'Phone' => $phone,
                         'Latitude' => $latitude,
                         'Longitude' => $longitude
                       ),
                        array(
+                        '%s',
                         '%s',
                         '%s',
                         '%s',
@@ -282,7 +288,7 @@ function storeLocator_add_stores_page()
 
         if(isset($_REQUEST['ID']) && $_REQUEST['ID'] > 0)
         {
-            $sql  = "SELECT Name, FullAddress, Street, City, Country, Phone, Province, Latitude, Longitude FROM $table_name\n";
+            $sql  = "SELECT Name, Street, City, Country, Phone, Province, PostalCode, Latitude, Longitude FROM $table_name\n";
             $sql .= " WHERE ID = ".$_REQUEST['ID']." LIMIT 1";
        
             $f = $wpdb->get_results($sql);          
@@ -379,6 +385,16 @@ function storeLocator_add_stores_page()
                 </td>
             </tr>
             <tr>
+                <td>
+                    <label>
+                        Postal/ZIP Code:
+                    </label>
+                </td>
+                <td>
+                    <input id="postalCode" type="text" name="postalCode" value="<?php echo $r->PostalCode; ?>">
+                </td>
+            </tr>
+            <tr>
                 <td style="vertical-align:top;">
                     <label style="display: none;">
                         Address:
@@ -386,12 +402,10 @@ function storeLocator_add_stores_page()
                     <button type="button" id="checkAddress" name="checkAddress" onclick="moveToAddress(); return false;">Check Address</button>
                 </td>
                 <td>
-                    <textarea id="address" type="text" name="address" style="display: none"><?php echo $r->FullAddress; ?></textarea>
                     <div id="akwAdminMap" style="width:200px; height:200px; float:right; border: 1px solid #444444;">
                     </div>
                     <br />
-                    <!--<a onclick="moveToAddress(); return false;">Check Address</a>-->
-                </td>
+                  </td>
             </tr>
             <tr>
                 <td>
@@ -486,6 +500,16 @@ function storeLocator_add_stores_page()
                   </td>
                 </tr>
                 <tr>
+                    <td>
+                        <label>
+                            Postal/ZIP Code:
+                        </label>
+                    </td>
+                    <td>
+                        <input id="postalCode" type="text" name="postalCode" value="<?php echo $r->PostalCode; ?>">
+                    </td>
+                </tr>
+                <tr>
                   <td style="vertical-align:top;">
                     <label style="display: none;">
                       Address:
@@ -493,7 +517,6 @@ function storeLocator_add_stores_page()
                     <button type="button" id="checkAddress" name="checkAddress" onclick="moveToAddress(); return false;">Check Address</button>
                   </td>
                   <td>
-                      <textarea id="address" type="text" name="address" style="display: none"></textarea>
                     <div id="akwAdminMap" style="width:200px; height:200px; float:right; border: 1px solid #444444;">
                     </div>
                     <br />
@@ -631,17 +654,23 @@ function storeLocator_upload_csv_page()
 //Function to get coordinates for stores without one
 function storeLocator_get_coordinates_page()
 {
-    
+ $imageURL = WP_PLUGIN_URL.'/akw-store-locator/images/working.gif';
 ?>
     <h2>Get Coordinates for Stores</h2>
     <p>Clicking on the <strong>Get Coordinates</strong> button gets the geo-location details for all the stores that do not have a latitude or longitude.</p>
     <button type="button" onclick="getAddresses();">Get Coordinates</button>
+    <div id="working">
+        <div>Saving coordinates...</div>
+        <img src="<?php echo $imageURL; ?>" alt="Working ...">
+        <div>Please wait...</div>
+    </div>
 <?php
 }
 
 //Function to add pagination css files to admin using add_action
 function storelocator_add_css()
 {
+    wp_enqueue_style('addAKWStoreLocatorCss', plugins_url('/akw-store-locator/css/akw-store-locator-style.css'));   
     wp_enqueue_style('addPaginationStyle1', plugins_url('/akw-store-locator/css/pagination.css'));
     wp_enqueue_style('addPaginationStyle2', plugins_url('/akw-store-locator/css/pagination_green.css'));   
 
@@ -664,6 +693,7 @@ function storeLocator_menu ()
         wp_enqueue_script('googleapiurl', 'http://maps.googleapis.com/maps/api/js?sensor=true');
     }
     wp_enqueue_script('addakwadminjsfunctions', plugins_url('/akw-store-locator/js/akwStoreLocatorAdminFunctions.js'));
+    wp_enqueue_style('addAKWStoreLocatorCss', plugins_url('/akw-store-locator/css/akw-store-locator-style.css'));   
     wp_enqueue_style('addPaginationStyle1', plugins_url('/akw-store-locator/css/pagination.css'));
     wp_enqueue_style('addPaginationStyle2', plugins_url('/akw-store-locator/css/pagination_green.css'));
     
@@ -672,6 +702,8 @@ function storeLocator_menu ()
         'plugin_url' => plugins_url('/akw-store-locator')
     );
     wp_localize_script('addakwadminjsfunctions', 'akwstorelocatoradminobject', $akwStoreLocatorAdminArray);
+    //Check current version
+    
 }
 
 //Function to display store locator in the theme pages
@@ -693,10 +725,10 @@ function displayakwstorelocator($attributes)
         ), $attributes);
     
     $output = '<div style="text-align: center;">';
-    $output .= '<label>'.$shortCodeAttr['maplabel'].':</label>';
+    $output .= '<label>'.$shortCodeAttr['maplabel'].': </label>';
     $output .= '<input id="addressInput" type="text" />';
     $output .= '<br />';
-    $output .= '<label>Radius:</label>';
+    $output .= '<label>Radius: </label>';
     $output .= '<select id="radiusSelect">';
     $output .= '<option selected="selected" value="5">5 Kms</option>';
     $output .= '<option value="10">10 Kms</option>';
