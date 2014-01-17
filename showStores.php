@@ -3,7 +3,7 @@
 Plugin Name: AKW Store Locator
 Plugin URI: http://www.aroundkwhosting.com
 Description: This plugin helps view stores in an area by specifying the radius of search. The admin can add new stores by entering the location, phone number and more. Multiple stores can be uploaded using the csv upload option.
-Version: 1.2
+Version: 1.3
 Author: Around Kitchener Waterloo
 Author URI: http://www.aroundkwhosting.com
 License: GPLv2 or later
