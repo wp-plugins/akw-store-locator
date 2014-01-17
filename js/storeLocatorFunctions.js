@@ -153,7 +153,7 @@ function doNothing()
 function createSidebarEntry(marker, name, address, phone, distance)
 {
   var div = document.createElement('div');
-  var html = '<b style="color: #0076da;">' + name + '</b> (' + distance.toFixed(1) + ' kms)<br/>' + address + ', Ph:' + phone;
+  var html = '<b style="color: #0076da;">' + name + '</b> (' + distance.toFixed(1) + ' kms)<br/>' + address + ', Ph: ' + phone;
   div.innerHTML = html;
   div.style.cursor = 'pointer';
   div.style.marginBottom = '5px';

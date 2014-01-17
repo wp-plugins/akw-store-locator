@@ -91,11 +91,13 @@ function getAddresses()
       var lines = xhr.responseText.split("\n");
       if(lines[0] == 'OKAY')
       {
+        document.getElementById('working').style.display = 'block';
        //call to getCoords function
         getCoords(lines);
       }
       else
       {
+        document.getElementById('working').style.display = 'none';
         alert(xhr.responseText);
       }
     }
@@ -119,30 +121,53 @@ function getCoords(lines)
         fields = lines[z].split('|');
        
         storeID = fields[0];
-        fullAddress = fields[1]+', '+fields[2]+', '+fields[3]+', '+fields[4];
+        fullAddress = fields[1]+', '+fields[2]+', '+fields[3]+', '+fields[4]+', '+fields[5];
         
-        geocoder1 = new google.maps.Geocoder();
-        geocoder1.geocode(
-            {
-                'address': fullAddress
-            },
-            function(results, status)
-            {
-                if (status == google.maps.GeocoderStatus.OK)
-                {
-                    lat = results[0].geometry.location.lat();
-                    longi = results[0].geometry.location.lng();
-                    //Call to funtion saveCoords       
-                    saveCoords(storeID, lat, longi);
-                }
-                else
-                {
-                    alert("Geocode was not successful for the following reason: " + status);
-                }
-            });
+        //setInterval(function(){ getLatLong(storeID, fullAddress) }, 1000);
+        
+        getLatLong(storeID, fullAddress);
     }
 }
 
+function getLatLong(storeID, fullAddress)
+{
+    geocoder1 = new google.maps.Geocoder();
+    geocoder1.geocode(
+        {
+            'address': fullAddress
+        },
+        function(results, status)
+        {
+            if (status == google.maps.GeocoderStatus.OK)
+            {
+                lat = results[0].geometry.location.lat();
+                longi = results[0].geometry.location.lng();
+                //Call to funtion saveCoords       
+                saveCoords(storeID, lat, longi);
+            }
+            else
+            {
+                var msg = '';
+                console.log("Geocode was not successful for the following reason: " + status);
+                if(status == 'ZERO_RESULTS')
+                {
+                    msg += 'Unable to find the location for the address: '+fullAddress;
+                }
+                else if(status == 'OVER_QUERY_LIMIT')
+                {
+                    msg += 'Reached Google Geocode query limit. Please try later.';
+                }
+                else
+                {
+                    msg += status;
+                }
+                document.getElementById('working').style.display = 'none';
+                alert("Error: " + msg);
+                return;
+            }
+        });
+}
+var count = 0;
 //Function to save the coords for the address
 function saveCoords(storeid, latitude, longitude)
 {
@@ -157,11 +182,15 @@ function saveCoords(storeid, latitude, longitude)
         if(lines[0] == 'OKAY')
         {
             //Alert the user when save successfull
-            alert('Coordinates added!');
+            //alert('Coordinates added!');
+            count++;
+            console.log('Coordinates added! = count: '+count);
+            setTimeout(function(){ getAddresses() }, 3000);
         }
         else
         {
-            alert(xhr.responseText);
+            console.log(xhr.responseText);
+            //alert(xhr.responseText);
         }
       }
     }
