@@ -2,10 +2,10 @@
 Contributors: Pradeep
 Tags: Store locator, google maps, maps, store finder, store locations, business locator, geocoding, radius, stores
 Author URI: http://www.aroundkwhosting.com
-Version: 1.4
+Version: 1.5
 Requires at least: 3.6
 Tested up to: 3.8
-Stable tag: 1.4
+Stable tag: 1.5
 License: GPLv2 or later
 
 Simple, easy to install plugin to view stores around a location. Displays the results using Google map.
@@ -72,12 +72,14 @@ The 'Upgrade.php' file needs to be present in the 'wp-admin/includes' folder. Th
 
 == Upgrade Notice ==
 
-= 1.4 =
+= 1.5 =
 This upgrade fixes the geocode over the limit issue with Google API.
 
 == Changelog ==
-= 1.4 =
+= 1.5 =
 * Fixed code to get geocode locations for multiple addresses.
+= 1.4 =
+* Fixed minor issue
 = 1.3 =
 * Fixed minor issue
 = 1.2 =
