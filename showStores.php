@@ -3,13 +3,13 @@
 Plugin Name: AKW Store Locator
 Plugin URI: http://www.aroundkwhosting.com
 Description: This plugin helps view stores in an area by specifying the radius of search. The admin can add new stores by entering the location, phone number and more. Multiple stores can be uploaded using the csv upload option.
-Version: 1.5
+Version: 1.6
 Author: Around Kitchener Waterloo
 Author URI: http://www.aroundkwhosting.com
 License: GPLv2 or later
 */
 /*
-Copyright 2013  Around Kitchener Waterloo  (email : pradeep@aroundkw.com)
+Copyright 2013  Around Kitchener Waterloo  (email : freelisting@aroundkw.com)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2, as 
@@ -26,6 +26,50 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 require_once('storeLocatorConfig.php');
 include_once('storeFunctions.php');
+
+//declare global variables
+if (!defined('AKWSTORELOCATOR_VERSION_KEY'))
+{
+    define('AKWSTORELOCATOR_VERSION_KEY', 'akwstorelocator_version');
+}
+
+if (!defined('AKWSTORELOCATOR_VERSION_NUM'))
+{
+    define('AKWSTORELOCATOR_VERSION_NUM', '1.5');
+}
+
+add_option(AKWSTORELOCATOR_VERSION_KEY, AKWSTORELOCATOR_VERSION_NUM);
+
+$new_version = '1.6';
+
+if (get_option(AKWSTORELOCATOR_VERSION_KEY) != $new_version) {
+    akwstorelocator_update_database_table();
+    update_option(AKWSTORELOCATOR_VERSION_KEY, $new_version);
+}
+
+function akwstorelocator_update_database_table() {
+    global $wpdb;
+    $table = $wpdb->prefix."Stores";
+
+    $sql = "CREATE TABLE " . $table . " (
+        ID int(10) NOT NULL AUTO_INCREMENT,
+        Name varchar(100) DEFAULT NULL,
+        Phone varchar(15) DEFAULT NULL,
+        Street varchar(100) DEFAULT NULL,
+        City varchar(25) DEFAULT NULL,
+        Province varchar(25) DEFAULT NULL,
+        PostalCode varchar(10) DEFAULT NULL,
+        Country varchar(50) DEFAULT NULL,
+        Latitude float(10,6) DEFAULT NULL,
+        Longitude float(10,6) DEFAULT NULL,
+        PreferredStore tinyint(1) DEFAULT 0,
+        CustomInfo varchar(255) DEFAULT NULL,
+        UNIQUE KEY  (`ID`)
+    );";
+
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    dbDelta($sql);
+}
 
 register_activation_hook(__FILE__, 'installStoreTable');
 register_deactivation_hook(__FILE__, 'akwUnregisterScripts');
@@ -109,7 +153,7 @@ function storeLocator_stores_page ()
     echo '<form method="POST" action="'.admin_url('admin.php?page=storeLocator_admin').'">';
     echo '<p><input type="submit" name="deleteButton" id="deleteButton" value="Delete" />';
     echo '<br /><br /><button type="button" name="check" onclick="checkAllBoxes();">Check All</button>&nbsp;&nbsp;&nbsp;<button type="button" name="uncheck" onclick="unCheckAllBoxes();">Uncheck All</button></p>';
-    echo '<table><tr><th></th><th>Name</th><th>Street</th><th>City</th><th>Province</th><th>Country</th><th>Postal/ZIP Code</th><th>Coordinates</th><th>Action</th></tr>';
+    echo '<table class="storesListTable"><tr><th></th><th>Name</th><th>Street</th><th>City</th><th>Province</th><th>Country</th><th>Postal/ZIP Code</th><th>Coordinates</th><th>Preferred Store</th><th>Action</th></tr>';
     
     //Pagination code
     $pageNo = (int) (!isset($_GET["pageNo"]) ? 1 : $_GET["pageNo"]);
@@ -123,12 +167,13 @@ function storeLocator_stores_page ()
     
     if($count > 0)
     {
+        $count = 0;
         echo pagination($statement, $limit, $pageNo, admin_url('admin.php?page=storeLocator_admin&'));
         $sql = "SELECT * FROM $table_name ORDER BY Country, Province, Name, ID ASC LIMIT $startpoint, $limit";
         $q = $wpdb->get_results($sql);
         foreach($q AS $f)
         {
-            echo '<tr>';
+            echo '<tr '.($count % 2 == 0 ? 'class="evenRow"' : '').'>';
             echo '<td><input type="checkbox" class="storesCheckboxes" name="storesCheckbox[]" id="storesCheckbox[]" value="'.$f->ID.'"/></td>';
             echo '<td>'.$f->Name.'</td>';
             echo '<td>'.$f->Street.'</td>';
@@ -144,11 +189,20 @@ function storeLocator_stores_page ()
             {
                 echo '<td>Yes</td>';
             }
+            if($f->PreferredStore == 0)
+            {
+                echo '<td>No</td>';    
+            }
+            else
+            {
+                echo '<td>Yes</td>';
+            }
             echo '<td>';
             echo '<a href="'.admin_url('admin.php?page=add_store&ID='.$f->ID).'" >Edit</a> | ';
             echo '<a href="'.admin_url('admin.php?page=storeLocator_admin&action=delete&ID='.$f->ID).'" onclick="return confirm(\'Are you sure you want to delete this store?\');" > Delete</a>';
             echo '</td>';
             echo '</tr>';
+            $count++;
         }
         
     }
@@ -207,6 +261,15 @@ function storeLocator_add_stores_page()
             $latitude = trim($_POST['latitude']);
             $longitude = trim($_POST['longitude']);
             $postalCode = trim($_POST['postalCode']);
+            if(isset($_POST['preferredStore']))
+            {
+                $preferredStore = trim($_POST['preferredStore']);
+            }
+            else
+            {
+                $preferredStore = 0;
+            }
+            $customInfo = trim($_POST['customInfo']);
             
             switch($_POST['action'])
             {
@@ -223,7 +286,9 @@ function storeLocator_add_stores_page()
                         'PostalCode' => $postalCode,
                         'Phone' => $phone,
                         'Latitude' => $latitude,
-                        'Longitude' => $longitude
+                        'Longitude' => $longitude,
+                        'PreferredStore' => $preferredStore,
+                        'CustomInfo' => $customInfo
                         ),
                       array(
                         'ID' => $_POST['ID']
@@ -236,9 +301,10 @@ function storeLocator_add_stores_page()
                         '%s',
                         '%s',
                         '%s',
-                        '%s',
                         '%f',
-                        '%f'
+                        '%f',
+                        '%d',
+                        '%s'
                       ),
                       array(
                        '%d' 
@@ -259,7 +325,9 @@ function storeLocator_add_stores_page()
                         'PostalCode' => $postalCode,
                         'Phone' => $phone,
                         'Latitude' => $latitude,
-                        'Longitude' => $longitude
+                        'Longitude' => $longitude,
+                        'PreferredStore' => $preferredStore,
+                        'CustomInfo' => $customInfo
                       ),
                        array(
                         '%s',
@@ -269,9 +337,10 @@ function storeLocator_add_stores_page()
                         '%s',
                         '%s',
                         '%s',
-                        '%s',
                         '%f',
-                        '%f'
+                        '%f',
+                        '%d',
+                        '%s'
                       )
                     );
                     $_REQUEST['ID'] = $wpdb->insert_id;
@@ -284,19 +353,35 @@ function storeLocator_add_stores_page()
         echo '<div class="wrap">';
         echo '<h2>Add Store</h2>';
         echo '<button type="button" onclick="window.location=\''.admin_url('admin.php?page=storeLocator_admin').'\';">Go Back to Stores</button>';
-        
+        echo '<div>
+        <h4>Steps to add a store:</h4>
+        <ul>
+        <li>The Name field is required.</li>
+        <li>One of Street, City, Province/State, Country field is required.</li>
+        <li>There are two ways to get the coordinates:
+        <ol>
+        <li>Enter the address Street, City, Province/State, Country, Posta/Zip Code fields and the click on the <strong>Check Address</strong> button</li>
+        <li>Drag the marker to the store address</li>
+        </ol>
+        </li>
+        <li>The Latitude and Longitude fields are read-only fields. They are filled out by the plugin</li>
+        <li>Cleck the Preferred Store option for the store to have a higher priority when searched.</li>
+        <li>Custom information/text can be entered for the store</li>
+        </ul>
+        </div>';
 
         if(isset($_REQUEST['ID']) && $_REQUEST['ID'] > 0)
         {
-            $sql  = "SELECT Name, Street, City, Country, Phone, Province, PostalCode, Latitude, Longitude FROM $table_name\n";
+            $sql  = "SELECT ID, Name, Street, City, Country, Phone, Province, PostalCode, Latitude, Longitude, PreferredStore, CustomInfo FROM $table_name\n";
             $sql .= " WHERE ID = ".$_REQUEST['ID']." LIMIT 1";
        
             $f = $wpdb->get_results($sql);          
         }
         
-        echo '<form method="POST" action="'.admin_url('admin.php?page=add_store&ID='.$_REQUEST['ID']).'">';
+        
         if(isset($_REQUEST['ID']) && $_REQUEST['ID'] > 0)
         {
+        echo '<form method="POST" action="'.admin_url('admin.php?page=add_store&ID='.$_REQUEST['ID']).'">';
 ?>
         <input type="hidden" name="action" value="update">
         <input type="hidden" name="ID" value="<?php echo $_REQUEST['ID']; ?>">
@@ -304,6 +389,7 @@ function storeLocator_add_stores_page()
         }
         else
         {
+            echo '<form method="POST" action="'.admin_url('admin.php?page=add_store').'">';
 ?>
         <input type="hidden" name="action" value="insert">
 <?php
@@ -321,7 +407,7 @@ function storeLocator_add_stores_page()
             //Display error messages
             foreach($errMsgs as $errMsg)
             {
-                echo '<p class="error">'.$errMsg."</p>\n";
+                echo '<p class="error">'.$errMsg.'</p>';
             }
 ?>
             </td>
@@ -337,7 +423,7 @@ function storeLocator_add_stores_page()
             <tr>
                 <td>
                     <label>
-                        Name:
+                        Name*:
                     </label>
                 </td>
                 <td>
@@ -402,7 +488,7 @@ function storeLocator_add_stores_page()
                     <button type="button" id="checkAddress" name="checkAddress" onclick="moveToAddress(); return false;">Check Address</button>
                 </td>
                 <td>
-                    <div id="akwAdminMap" style="width:200px; height:200px; float:right; border: 1px solid #444444;">
+                    <div id="akwAdminMap" style="width:300px; height:300px; float:right; border: 1px solid #444444;">
                     </div>
                     <br />
                   </td>
@@ -438,10 +524,33 @@ function storeLocator_add_stores_page()
                   </td>
                 </tr>
                 <tr>
-                  <td colspan="100%" align="center">
-                    <input type="submit" value="Save Store">
+                    <td>
+                        <label>
+                            Is a Preferred Store?:
+                        </label>
+                    </td>
+                    <td>
+                        <input type="checkbox" name="preferredStore" id="preferredStore" value="1" <?php echo ($r->PreferredStore == 1 ? 'checked=checked' : ''); ?> />
+                    </td>
+                </tr>
+               <tr>
+                  <td>
+                    <label>
+                      Custom Information:
+                    </label>
+                  </td>
+                  <td>
+                    <input id="customInfo" type="text" name="customInfo" value="<?php echo $r->CustomInfo; ?>">
                   </td>
                 </tr>
+                <tr>
+                  <td colspan="100%" align="center">
+                    <input type="submit" value="Save Store" onclick="return checkRequiredFields();">
+                  </td>
+                </tr>
+                <script type="text/javascript">
+                moveToAddress();
+                </script>
                 <?php
             }
         }
@@ -506,7 +615,7 @@ function storeLocator_add_stores_page()
                         </label>
                     </td>
                     <td>
-                        <input id="postalCode" type="text" name="postalCode" value="<?php echo $r->PostalCode; ?>">
+                        <input id="postalCode" type="text" name="postalCode" value="">
                     </td>
                 </tr>
                 <tr>
@@ -517,7 +626,7 @@ function storeLocator_add_stores_page()
                     <button type="button" id="checkAddress" name="checkAddress" onclick="moveToAddress(); return false;">Check Address</button>
                   </td>
                   <td>
-                    <div id="akwAdminMap" style="width:200px; height:200px; float:right; border: 1px solid #444444;">
+                    <div id="akwAdminMap" style="width:300px; height:300px; float:right; border: 1px solid #444444;">
                     </div>
                     <br />
                   </td>
@@ -552,11 +661,34 @@ function storeLocator_add_stores_page()
                     <input id="phone" type="text" name="phone" value="">
                   </td>
                 </tr>
-                <tr>
-                  <td colspan="100%" align="center">
-                    <input type="submit" value="Save Store">
+               <tr>
+                    <td>
+                        <label>
+                            Is a Preferred Store?:
+                        </label>
+                    </td>
+                    <td>
+                        <input type="checkbox" name="preferredStore" id="preferredStore" value="1" />
+                    </td>
+                </tr>
+               <tr>
+                  <td>
+                    <label>
+                      Custom Information:
+                    </label>
+                  </td>
+                  <td>
+                    <input id="customInfo" type="text" name="customInfo" value="">
                   </td>
                 </tr>
+                <tr>
+                  <td colspan="100%" align="center">
+                    <input type="submit" value="Save Store" onclick="return checkRequiredFields();">
+                  </td>
+                </tr>
+                <script type="text/javascript">
+                    initBlankMap();
+                </script>
             <?php
         }
         ?>
@@ -603,13 +735,13 @@ function storeLocator_upload_csv_page()
     <div>
         <h4>To Create a CSV file:</h4>
         <ul>
-            <li>The excel sheet must be sorted and arranged by the the following fields:
+            <li>The CSV file must be sorted and arranged by the the following fields:
             <br />
-                    Name : Phone : Street : City : Province : PostalCode : Country : Latitude : Longitude
+                    <strong>Name : Phone : Street : City : Province : PostalCode : Country : Latitude : Longitude : PreferredStore : Custom Info</strong>
             </li>
             <li>The Name field is mandatory field.</li>
-            <li>Any other fields that are not mandatory can be ignored but the column should exist.</li>
-            <li>There should be no headings  for the columns and no no blank rows.</li>
+            <li>Any other fields that are not mandatory can be ignored but the column should exist. For eg: Phone field is not required but the field needs to be left empty '::'</li>
+            <li>There should be no headings  for the columns and no blank rows.</li>
             <li>The Latitude and Longitude fields should have 0 for the first row at least.</li>
             <li>The List separator need to be ':'. To change the list separator in MS Excel, the following steps need to be followed:
                 <ol>
@@ -628,6 +760,7 @@ function storeLocator_upload_csv_page()
             </li>
             <li>Once its done, click on Save As then choose .csv from the File Type drop-down.</li> 
             <li>For OpenOffice, Check the Edit filter Settings checkbox in the dialog box that appears when Save As is selected. In the Export of Text files dialog box, change the Field Delimiter to ':'.</li>
+            <li><strong>For sample CSV file, <a href="<?php echo WP_PLUGIN_URL.'/akw-store-locator/sample.csv'; ?>" target="_blank">Click Here</a></strong></li>
         </ul>
         <br />
         <?php
@@ -679,7 +812,7 @@ function storelocator_add_css()
 //Function to add admin section actions and hooks
 function storeLocator_menu ()
 {
-    add_menu_page('Store Locator Admin','Store Locator Admin','manage_options','storeLocator_admin', 'storeLocator_stores_page');
+    add_menu_page('AKW Store Locator Admin','AKW Store Locator Admin','manage_options','storeLocator_admin', 'storeLocator_stores_page');
     add_submenu_page('storeLocator_admin', 'Add store','Add store','manage_options','add_store', 'storeLocator_add_stores_page');
     add_submenu_page('storeLocator_admin', 'Upload csv file','Upload csv file','manage_options','upload_csv', 'storeLocator_upload_csv_page');
     add_submenu_page('storeLocator_admin', 'Get Coordinates','Get Coordinates','manage_options','get_coordinates', 'storeLocator_get_coordinates_page');
@@ -717,6 +850,7 @@ function displayakwstorelocator($attributes)
     wp_register_script('add-akw-store-locator-script', plugins_url('/akw-store-locator/js/storeLocatorFunctions.js'));
     wp_enqueue_script('add-akw-store-locator-script');
     wp_localize_script('add-akw-store-locator-script', 'akwstorelocatorobject', $akwStoreLocatorArray);
+    wp_enqueue_style('addAKWStoreLocatorCss', plugins_url('/akw-store-locator/css/akw-store-locator-style.css'));   
     
     //short code attributes set or replace defaults
     $shortCodeAttr = shortcode_atts( array(
@@ -728,14 +862,21 @@ function displayakwstorelocator($attributes)
     $output .= '<label>'.$shortCodeAttr['maplabel'].': </label>';
     $output .= '<input id="addressInput" type="text" />';
     $output .= '<br />';
+    $output .= '<br />';
     $output .= '<label>Radius: </label>';
     $output .= '<select id="radiusSelect">';
-    $output .= '<option selected="selected" value="5">5 Kms</option>';
-    $output .= '<option value="10">10 Kms</option>';
-    $output .= '<option value="25">25 Kms</option>';
-    $output .= '<option value="50">50 Kms</option>';
-    $output .= '<option value="100">100 Kms</option>';
+    $output .= '<option selected="selected" value="5">5</option>';
+    $output .= '<option value="10">10</option>';
+    $output .= '<option value="25">25</option>';
+    $output .= '<option value="50">50</option>';
+    $output .= '<option value="100">100</option>';
     $output .= '</select>';
+    $output .= '&nbsp;';
+    $output .= '<select id="distanceType">';
+    $output .= '<option value="kms">Kms</option>';
+    $output .= '<option value="miles">Miles</option>';
+    $output .= '</select>';
+    $output .= '<br />';
     $output .= '<br />';
     $output .= '<input onclick="searchLocations()" type="button" value="'.$shortCodeAttr['mapbutton'].'" />';
     $output .= '</div>';

@@ -2,10 +2,10 @@
 Contributors: Pradeep
 Tags: Store locator, google maps, maps, store finder, store locations, business locator, geocoding, radius, stores
 Author URI: http://www.aroundkwhosting.com
-Version: 1.5
+Version: 1.6
 Requires at least: 3.6
-Tested up to: 3.8
-Stable tag: 1.5
+Tested up to: 3.9.2
+Stable tag: 1.6
 License: GPLv2 or later
 
 Simple, easy to install plugin to view stores around a location. Displays the results using Google map.
@@ -16,38 +16,40 @@ The AKW Store Locator plugin helps users view locations of business along with p
 
 Requires WordPress 3.6, PHP 5, mySQL.
 
-**Features**
+= Features =
 * Add store by entering store name, address and other details.
+* Highlight preferred stores.
+* Add custom text to stores.
 * Add multiple stores at a time by uploading a CSV file.
 * Display the plugin in a page by using a short code.
 * Users can search for stores by street, city, postal code, province or country.
 * Users can select the radius of the search.
 * Displays store address, phone numbers and distance to store from seach area.
 * Can use Google Maps Api key in the plugin.
+* Distance options in kilometers or miles.
 
-**Coming soon**
+= Coming soon =
 * Plugin style customization.
 * More store details.
-* Preferred store location options.
 * Current location detection.
 
 == Installation ==
 
-**Manual Install**
+= Manual Install =
 1. Upload the 'akw-store-locator' folder to the '/wp-content/plugins/' folder.
 2. Activate the plugin through the 'Plugins' menu in WordPress.
 3. (Optional) Add the Google API key to the 'storeLocatorConfig.php' page and set the 'USE_GOOGLE_KEY' to 'true'.
 4. Add the short-code [akwstorelocator] to the page that you want to display the store locator.
-5. Change the short-code to [akwstorelocator maplabel="Some label" mapbutton="Some Button"] for custom label and button names.
+5. Change the short-code to [akwstorelocator maplabel="Postal/Zip, City/Province/State or Full Address" mapbutton="Search Sores"] for custom label and button names.
 6. Plugin is ready for use!
 
-**Auto Install**
+= Auto Install =
 1. Search for "AKW Store Locator" in the plugins page.
 2. Click on install.
 3. Activate the plugin through the 'Plugins' menu in WordPress.
 4. (Optional) Add the Google API key to the 'storeLocatorConfig.php' page and set the 'USE_GOOGLE_KEY' to 'true'.
 5. Add the short-code [akwstorelocator] to the page that you want to display the store locator.
-6. Change the short-code to [akwstorelocator maplabel="Some label" mapbutton="Some Button"] for custom label and button names.
+6. Change the short-code to [akwstorelocator maplabel="Postal/Zip, City/Province/State or Full Address" mapbutton="Search Sores"] for custom label and button names.
 7. Plugin is ready for use!
 
 == Frequently Asked Questions ==
@@ -66,16 +68,24 @@ The database table is not deleted when the plugin is deactivated. So the data st
 The 'Upgrade.php' file needs to be present in the 'wp-admin/includes' folder. This file is required to add the table to the database.
 
 == Screenshots ==
-1. Add Store screenshot
+1. Add Store screenshot.
 2. List of stores.
-3. View of store locator.
+3. Upload csv file.
+4. Get coordinates
+5. View of store locator.
 
 == Upgrade Notice ==
 
-= 1.5 =
-This upgrade fixes the geocode over the limit issue with Google API.
+= 1.6 =
+* This upgrade fixes the csv upload functionality.
+* New options for distance in kilometers or miles.
+* Preferred store and custom text options for stores.
 
 == Changelog ==
+= 1.6 =
+* Options to choose between kilometers or miles.
+* Updated csv file upload.
+* Preferred store and custom text options for stores.
 = 1.5 =
 * Fixed code to get geocode locations for multiple addresses.
 = 1.4 =

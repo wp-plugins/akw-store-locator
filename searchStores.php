@@ -1,4 +1,6 @@
 <?php
+//akw-store-locator search store functionalities
+
 header("Content-type: text/xml");
 $parse_uri = explode('wp-content', __FILE__);
 $wploadAKW = $parse_uri[0].'wp-load.php';
@@ -24,14 +26,24 @@ function parseToXML($htmlStr)
 $center_lat = $_GET["lat"];
 $center_lng = $_GET["lng"];
 $radius = $_GET["radius"];
+$distType = $_GET["distType"];
+$newRadius = 0;
+if($distType == 'miles')
+{
+    $newRadius = intval($radius) * 1.6;
+}
+else
+{
+    $newRadius = intval($radius);
+}
 
 // Search the rows in the markers table
-$query = sprintf("SELECT Street, City, Province, PostalCode, Name, Latitude, Longitude, Country, Phone, ( 6371 * acos( cos( radians('%s') ) * cos( radians( Latitude ) ) * cos( radians( Longitude ) - radians('%s') ) + sin( radians('%s') ) * sin( radians( Latitude ) ) ) ) AS distance FROM %s HAVING distance < '%s' ORDER BY distance",
+$query = sprintf("SELECT Street, City, Province, PostalCode, Name, Latitude, Longitude, Country, Phone, PreferredStore, CustomInfo, ( 6371 * acos( cos( radians('%s') ) * cos( radians( Latitude ) ) * cos( radians( Longitude ) - radians('%s') ) + sin( radians('%s') ) * sin( radians( Latitude ) ) ) ) AS distance FROM %s HAVING distance < '%s' ORDER BY PreferredStore DESC, distance ASC",
     mysql_real_escape_string($center_lat),
     mysql_real_escape_string($center_lng),
     mysql_real_escape_string($center_lat),
     $table_name,
-    mysql_real_escape_string($radius));
+    mysql_real_escape_string($newRadius));
 
 
 $result = $wpdb->get_results($query);
@@ -45,6 +57,15 @@ echo  "<markers>\n";
 // Iterate through the rows, printing XML nodes for each
 foreach($result AS  $row)
 {
+    $distance = 0;
+    if($distType == 'miles')
+    {
+        $distance = $row->distance * 0.6;
+    }
+    else
+    {
+        $distance = $row->distance;
+    }
     
     $fullAddress = $row->Street.', '.$row->City.', '.$row->Province.', '.$row->PostalCode.', '.$row->Country;
     
@@ -55,7 +76,9 @@ foreach($result AS  $row)
   echo 'lat="' . $row->Latitude. '" ';
   echo 'lng="' . $row->Longitude . '" ';
   echo 'phone="' . parseToXML($row->Phone) . '" ';
-  echo 'distance="' . $row->distance. '" ';
+  echo 'distance="' .$distance. '" ';
+  echo 'preferredStore="' .$row->PreferredStore. '" ';
+  echo 'customInfo="' . parseToXML($row->CustomInfo) . '" ';
   echo "/>\n";
 }
 

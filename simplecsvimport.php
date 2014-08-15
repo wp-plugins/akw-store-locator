@@ -1,7 +1,6 @@
 <?php
+//akw-store-locator CSV import functionality
 
-/********************************/
-/* Code at http://legend.ws/blog/tips-tricks/csv-php-mysql-import/
 /* Edit the entries below to reflect the appropriate values
 /********************************/
 $fieldseparator = ":";
