@@ -1,3 +1,5 @@
+//akw-store-locator general section styles
+
 //Declare variables
 var map;
 var markers = [];
@@ -52,7 +54,9 @@ function searchLocationsNear(center)
  clearLocations();
 
  var radius = document.getElementById('radiusSelect').value;
- var searchUrl = akwstorelocatorobject.plugin_url+'/searchStores.php?lat=' + center.lat() + '&lng=' + center.lng() + '&radius=' + radius;
+ var distanceType = document.getElementById('distanceType').value;
+ 
+ var searchUrl = akwstorelocatorobject.plugin_url+'/searchStores.php?lat=' + center.lat() + '&lng=' + center.lng() + '&radius=' + radius + '&distType=' + distanceType;
  downloadUrl(searchUrl, function(data) {
    var xml = parseXml(data);
    var markerNodes = xml.documentElement.getElementsByTagName("marker");
@@ -79,12 +83,16 @@ function searchLocationsNear(center)
      {
       phone = markerNodes[i].getAttribute("phone");
      }
+     
+     var preferredStore = markerNodes[i].getAttribute("preferredStore");
+     var customInfo = markerNodes[i].getAttribute("customInfo");
+     
      var latlng = new google.maps.LatLng(
 	  parseFloat(markerNodes[i].getAttribute("lat")),
 	  parseFloat(markerNodes[i].getAttribute("lng")));
 
      createOption(name, distance, i);
-     createMarker(latlng, name, address, phone, distance);
+     createMarker(latlng, name, address, phone, distance, distanceType, preferredStore, customInfo);
      bounds.extend(latlng);
   } 
   map.fitBounds(bounds);
@@ -92,9 +100,22 @@ function searchLocationsNear(center)
 }
 
 //Function to create marker
-function createMarker(latlng, name, address, phone, distance) {
+function createMarker(latlng, name, address, phone, distance, distType, preferredStore, customInfo) {
   var sidebar = document.getElementById('akwLocationSidebar');
-  var html = "<b>" + name + "</b> <br/>" + address;
+  var html = '';
+  if(preferredStore == 1)
+  {
+    html = "<span class='preferredStoreSpan'><strong>" + name + "</strong></span> <br/>" ;
+  }
+  else
+  {
+    html = "<strong>" + name + "</strong> <br/>" ;  
+  }
+  if(customInfo != '')
+  {
+    html += customInfo + '<br />';
+  }
+  html += address;
   var marker = new google.maps.Marker({
     map: map,
     position: latlng
@@ -104,7 +125,7 @@ function createMarker(latlng, name, address, phone, distance) {
     infoWindow.open(map, marker);
   });
   
-  var sidebarEntry = createSidebarEntry(marker, name, address, phone, distance);
+  var sidebarEntry = createSidebarEntry(marker, name, address, phone, distance, distType, preferredStore, customInfo);
      sidebar.appendChild(sidebarEntry);
      
   markers.push(marker);
@@ -150,10 +171,34 @@ function doNothing()
 }
 
 //Function to create sidebar entry
-function createSidebarEntry(marker, name, address, phone, distance)
+function createSidebarEntry(marker, name, address, phone, distance, distType, preferredStore, customInfo)
 {
   var div = document.createElement('div');
-  var html = '<b style="color: #0076da;">' + name + '</b> (' + distance.toFixed(1) + ' kms)<br/>' + address + ', Ph: ' + phone;
+  var html = '';
+  
+  if(preferredStore == 1)
+  {
+    if(!document.getElementsByClassName('preferredStoreSpan').length)
+    {
+      html += '<h3>Preferred Locations:</h3>';
+    }
+    html += '<span class="preferredStoreSpan"><strong>' + name + '</strong></span>';
+  }
+  else
+  {
+    if(!document.getElementsByClassName('nonPreferredStoreSpan').length)
+    {
+      html += '<h3>Locations:</h3>';
+    }
+    html += '<span class="nonPreferredStoreSpan"><strong>' + name + '</strong></span>';  
+  }
+  
+  html += ' (' + distance.toFixed(1) + ' '+distType+')<br/>';
+  if(customInfo != '')
+  {
+    html +=  customInfo + '<br />';
+  }
+  html += address + ', Ph: ' + phone;
   div.innerHTML = html;
   div.style.cursor = 'pointer';
   div.style.marginBottom = '5px';

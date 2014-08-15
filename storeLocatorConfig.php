@@ -1,4 +1,6 @@
 <?php
+//akw-store-locator config file
+
 //Google API key
 //Change this to true to use Google maps API key V3
 define('USE_GOOGLE_KEY', false);

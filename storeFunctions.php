@@ -1,4 +1,6 @@
 <?php
+//akw-store-locator common functions
+ 
     $parse_uri = explode('wp-content', __FILE__);
     $wploadAKW = $parse_uri[0].'wp-load.php';
     include_once($wploadAKW);
@@ -31,7 +33,7 @@
         
         if($count == 0)
         {
-          $responsea = "No store with empty coordinates available";
+          $responsea = "Stores with empty coordinates not found";
         }
         else
         {
