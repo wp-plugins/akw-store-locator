@@ -3,7 +3,7 @@
 Plugin Name: AKW Store Locator
 Plugin URI: http://www.aroundkwhosting.com
 Description: This plugin helps view stores in an area by specifying the radius of search. The admin can add new stores by entering the location, phone number and more. Multiple stores can be uploaded using the csv upload option.
-Version: 1.6
+Version: 1.6.1
 Author: Around Kitchener Waterloo
 Author URI: http://www.aroundkwhosting.com
 License: GPLv2 or later
@@ -40,7 +40,7 @@ if (!defined('AKWSTORELOCATOR_VERSION_NUM'))
 
 add_option(AKWSTORELOCATOR_VERSION_KEY, AKWSTORELOCATOR_VERSION_NUM);
 
-$new_version = '1.6';
+$new_version = '1.6.1';
 
 if (get_option(AKWSTORELOCATOR_VERSION_KEY) != $new_version) {
     akwstorelocator_update_database_table();
@@ -760,7 +760,7 @@ function storeLocator_upload_csv_page()
             </li>
             <li>Once its done, click on Save As then choose .csv from the File Type drop-down.</li> 
             <li>For OpenOffice, Check the Edit filter Settings checkbox in the dialog box that appears when Save As is selected. In the Export of Text files dialog box, change the Field Delimiter to ':'.</li>
-            <li><strong>For sample CSV file, <a href="<?php echo WP_PLUGIN_URL.'/akw-store-locator/sample.csv'; ?>" target="_blank">Click Here</a></strong></li>
+            <li><strong>For sample CSV file, <a href="<?php echo WP_PLUGIN_URL.'/akw-store-locator/sample.csv'; ?>" target="_blank">Click Here</a></strong> or download sample from <a href="http://aroundkwhosting.com/sample.csv" target="_blank">here</a></li>
         </ul>
         <br />
         <?php

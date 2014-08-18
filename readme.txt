@@ -1,30 +1,31 @@
 === AKW Store Locator ===
-Contributors: Pradeep
-Tags: Store locator, google maps, maps, store finder, store locations, business locator, geocoding, radius, stores
-Author URI: http://www.aroundkwhosting.com
-Version: 1.6
+Contributors: AroundKW
+Tags: Store locator, google maps, maps, store finder, store locations, business locator, geocoding, radius, stores, preferred stores
+Author URI: http://www.aroundkwhosting.com/WpPlugins.html
+Version: 1.6.1
 Requires at least: 3.6
 Tested up to: 3.9.2
-Stable tag: 1.6
+Stable tag: 1.6.1
 License: GPLv2 or later
 
-Simple, easy to install plugin to view stores around a location. Displays the results using Google map.
+Simple, easy to install plugin to view stores around a location. Displays the results using Google map. Result in miles or kilometers.
 
 == Description ==
 
-The AKW Store Locator plugin helps users view locations of business along with phone number, address and distance from the location in a map by just specifying a location and selecting a range or radius of search. Admin can add stores/locations to the database.
+The AKW Store Locator plugin helps users view locations of businesses or stores along with phone number, address, distance from the location, preferred location and custom text in a map by just specifying a location and selecting a range or radius of search in kilometers or miles. Preferred stores/businesses will have a higher priority over the normal stores. Custom text can be added to each store. Administrators can add stores by entering the address or by dragging the map marker. Multiple stores can be added at the same time using a .csv file. Stores/businesses will be saved to the database.
 
 Requires WordPress 3.6, PHP 5, mySQL.
 
 = Features =
 * Add store by entering store name, address and other details.
+* Stores can also be added by dragging the map marker to the desired position.
 * Highlight preferred stores.
 * Add custom text to stores.
 * Add multiple stores at a time by uploading a CSV file.
 * Display the plugin in a page by using a short code.
 * Users can search for stores by street, city, postal code, province or country.
-* Users can select the radius of the search.
-* Displays store address, phone numbers and distance to store from seach area.
+* Users can select the radius of the search in km or miles.
+* Displays store address, phone numbers, distance to store, custom text and preferred store from seach area.
 * Can use Google Maps Api key in the plugin.
 * Distance options in kilometers or miles.
 
@@ -76,12 +77,15 @@ The 'Upgrade.php' file needs to be present in the 'wp-admin/includes' folder. Th
 
 == Upgrade Notice ==
 
-= 1.6 =
-* This upgrade fixes the csv upload functionality.
-* New options for distance in kilometers or miles.
-* Preferred store and custom text options for stores.
+= 1.6.1 =
+* This upgrade fixes minor bugs.
+* Gives admin the ability to move the marker for address when adding a new store.
 
 == Changelog ==
+= 1.6.1 =
+* Minor bug fixes.
+* Gives admin the ability to move the marker for address when adding a new store.
+* Supports Wordpress 3.9.2
 = 1.6 =
 * Options to choose between kilometers or miles.
 * Updated csv file upload.
