@@ -50,4 +50,9 @@ ul li
     color: #0076da;
 }
 
+/*Fix for map stretching*/
+#akwMap img
+{
+    max-width: none;
+}
 /*General sectiion styles - End*/
