@@ -1,0 +1,53 @@
+/*
+ *akw-store-locator style
+ **/
+/*Admin section styles - Start*/
+/*Working div for Get Coordinates page*/
+#working
+{
+    position: fixed;
+    display: none;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding:4px;
+    background-color: #000000;
+    color:#ffffff;
+    text-align: center;
+}
+
+.evenRow
+{
+    background-color: #ffffff;
+}
+
+.storesListTable th
+{
+    background-color: #C5C5C5;
+}
+
+.error
+{
+    color: #ff0000;
+    font-weight: bold;
+}
+
+ul li
+{
+    list-style: disc;
+}
+/*Admin section styles - End*/
+
+/*General sectiion styles - Start*/
+/*Set the color for a preferred store*/
+.preferredStoreSpan
+{
+    color: #ff0000;
+}
+
+/*Set the color for a normal store*/
+.nonPreferredStoreSpan
+{
+    color: #0076da;
+}
+
+/*General sectiion styles - End*/
