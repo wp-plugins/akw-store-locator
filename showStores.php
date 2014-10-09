@@ -3,13 +3,13 @@
 Plugin Name: AKW Store Locator
 Plugin URI: http://www.aroundkwhosting.com
 Description: This plugin helps view stores in an area by specifying the radius of search. The admin can add new stores by entering the location, phone number and more. Multiple stores can be uploaded using the csv upload option.
-Version: 1.7.2
+Version: 1.8
 Author: Around Kitchener Waterloo
 Author URI: http://www.aroundkwhosting.com
 License: GPLv2 or later
 */
 /*
-Copyright 2013  Around Kitchener Waterloo  (email : freelisting@aroundkw.com)
+Copyright 2014  Around Kitchener Waterloo  (email : freelisting@aroundkw.com)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2, as 
@@ -35,12 +35,12 @@ if (!defined('AKWSTORELOCATOR_VERSION_KEY'))
 
 if (!defined('AKWSTORELOCATOR_VERSION_NUM'))
 {
-    define('AKWSTORELOCATOR_VERSION_NUM', '1.6.1');
+    define('AKWSTORELOCATOR_VERSION_NUM', '1.7.2');
 }
 
 add_option(AKWSTORELOCATOR_VERSION_KEY, AKWSTORELOCATOR_VERSION_NUM);
 
-$new_version = '1.7.2';
+$new_version = '1.8';
 
 if (get_option(AKWSTORELOCATOR_VERSION_KEY) != $new_version) {
     akwstorelocator_update_database_table();
@@ -150,6 +150,20 @@ function storeLocator_stores_page ()
     echo '<div class="wrap">';
     echo '<h2>Stores</h2>';
     echo '<button type="button" onclick="window.location=\''.admin_url('admin.php?page=add_store').'\';">Add a new Store</button>';
+    echo '<div>';
+    echo '<form method="POST" action="'.admin_url('admin.php?page=storeLocator_admin').'">';
+    echo '<label>Search For</label>&nbsp;';
+    echo '<select name="searchType" id="searchType">';
+    echo '<option value="Name">Store Name</option>';
+    echo '<option value="City">City</option>';
+    echo '<option value="Province">Province/State</option>';
+    echo '<option value="Country">Country</option>';
+    echo '</select>';
+    echo '&nbsp;<input type="text" name="searchString" id="searchString" />';
+    echo '&nbsp;<input type="submit" name="searchAdminStores" id="searchAdminStores" value="Search" />';
+    echo '&nbsp;&nbsp;<input type="submit" name="showAllStores" id="showAllStores" value="Show All Stores" />';
+    echo '</form>';
+    echo '</div>';
     echo '<form method="POST" action="'.admin_url('admin.php?page=storeLocator_admin').'">';
     echo '<p><input type="submit" name="deleteButton" id="deleteButton" value="Delete" />';
     echo '<br /><br /><button type="button" name="check" onclick="checkAllBoxes();">Check All</button>&nbsp;&nbsp;&nbsp;<button type="button" name="uncheck" onclick="unCheckAllBoxes();">Uncheck All</button></p>';
@@ -169,40 +183,52 @@ function storeLocator_stores_page ()
     {
         $count = 0;
         echo pagination($statement, $limit, $pageNo, admin_url('admin.php?page=storeLocator_admin&'));
-        $sql = "SELECT * FROM $table_name ORDER BY Country, Province, Name, ID ASC LIMIT $startpoint, $limit";
-        $q = $wpdb->get_results($sql);
-        foreach($q AS $f)
+        $sql = "SELECT * FROM $table_name ";
+        if(isset($_POST['searchAdminStores']))
         {
-            echo '<tr '.($count % 2 == 0 ? 'class="evenRow"' : '').'>';
-            echo '<td><input type="checkbox" class="storesCheckboxes" name="storesCheckbox[]" id="storesCheckbox[]" value="'.$f->ID.'"/></td>';
-            echo '<td>'.$f->Name.'</td>';
-            echo '<td>'.$f->Street.'</td>';
-            echo '<td>'.$f->City.'</td>';
-            echo '<td>'.$f->Province.'</td>';
-            echo '<td>'.$f->Country.'</td>';
-            echo '<td>'.$f->PostalCode.'</td>';
-            if($f->Latitude == 0.000000)
+            $sql .= " WHERE ".$_POST['searchType']." LIKE '%".trim($_POST['searchString'])."%' ";
+        }
+        $sql .= " ORDER BY Country, Province, Name, ID ASC LIMIT $startpoint, $limit";
+        $q = $wpdb->get_results($sql);
+        if(count($q) > 0)
+        {
+            foreach($q AS $f)
             {
-                echo '<td>Empty</td>';    
+                echo '<tr '.($count % 2 == 0 ? 'class="evenRow"' : '').'>';
+                echo '<td><input type="checkbox" class="storesCheckboxes" name="storesCheckbox[]" id="storesCheckbox[]" value="'.$f->ID.'"/></td>';
+                echo '<td>'.$f->Name.'</td>';
+                echo '<td>'.$f->Street.'</td>';
+                echo '<td>'.$f->City.'</td>';
+                echo '<td>'.$f->Province.'</td>';
+                echo '<td>'.$f->Country.'</td>';
+                echo '<td>'.$f->PostalCode.'</td>';
+                if($f->Latitude == 0.000000)
+                {
+                    echo '<td>Empty</td>';    
+                }
+                else
+                {
+                    echo '<td>Yes</td>';
+                }
+                if($f->PreferredStore == 0)
+                {
+                    echo '<td>No</td>';    
+                }
+                else
+                {
+                    echo '<td>Yes</td>';
+                }
+                echo '<td>';
+                echo '<a href="'.admin_url('admin.php?page=add_store&ID='.$f->ID).'" >Edit</a> | ';
+                echo '<a href="'.admin_url('admin.php?page=storeLocator_admin&action=delete&ID='.$f->ID).'" onclick="return confirm(\'Are you sure you want to delete this store?\');" > Delete</a>';
+                echo '</td>';
+                echo '</tr>';
+                $count++;
             }
-            else
-            {
-                echo '<td>Yes</td>';
-            }
-            if($f->PreferredStore == 0)
-            {
-                echo '<td>No</td>';    
-            }
-            else
-            {
-                echo '<td>Yes</td>';
-            }
-            echo '<td>';
-            echo '<a href="'.admin_url('admin.php?page=add_store&ID='.$f->ID).'" >Edit</a> | ';
-            echo '<a href="'.admin_url('admin.php?page=storeLocator_admin&action=delete&ID='.$f->ID).'" onclick="return confirm(\'Are you sure you want to delete this store?\');" > Delete</a>';
-            echo '</td>';
-            echo '</tr>';
-            $count++;
+        }
+        else
+        {
+            echo '<tr><td colspan="5">No Stores found for the search results</td></tr>';
         }
         
     }
@@ -241,7 +267,7 @@ function storeLocator_add_stores_page()
 {
     global $wpdb;
     $table_name = $wpdb->prefix."Stores";
-        
+    
     $errMsgs = array();
     if(isset($_POST['action']))
     {
@@ -842,6 +868,7 @@ function storeLocator_menu ()
 //Function to display store locator in the theme pages
 function displayakwstorelocator($attributes)
 {
+    $imageURL = WP_PLUGIN_URL.'/akw-store-locator/images/working.gif';
     //Array to declare object with attributes in js file
     $akwStoreLocatorArray = array(
         'plugin_url' => plugins_url('/akw-store-locator')
@@ -856,11 +883,22 @@ function displayakwstorelocator($attributes)
     $shortCodeAttr = shortcode_atts( array(
         'maplabel' => 'Postal/Zip, City/Province/State or Full Address',
         'mapbutton' => 'Search Stores',
+        'storelabel' => 'Store Name(Optional)',
         ), $attributes);
     
-    $output = '<div style="text-align: center;">';
+    
+    $output .= '<div style="text-align: center;">';
+    $output .= '<div id="working">
+        <div>Loading...</div>
+        <img src="'.$imageURL.'" alt="Working ...">
+        <div>Please wait...</div>
+    </div>';
     $output .= '<label>'.$shortCodeAttr['maplabel'].': </label>';
     $output .= '<input id="addressInput" type="text" />';
+    $output .= '<br />';
+    $output .= '<br />';
+    $output .= '<label>'.$shortCodeAttr['storelabel'].'</label>';
+    $output .= '<input id="nameInput" type="text" />';
     $output .= '<br />';
     $output .= '<br />';
     $output .= '<label>Radius: </label>';

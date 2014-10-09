@@ -28,6 +28,8 @@ $center_lng = $_GET["lng"];
 $radius = $_GET["radius"];
 $distType = $_GET["distType"];
 $newRadius = 0;
+$storeName = $_GET['storeName'];
+
 if($distType == 'miles')
 {
     $newRadius = intval($radius) * 1.6;
@@ -38,13 +40,29 @@ else
 }
 
 // Search the rows in the markers table
-$query = sprintf("SELECT Street, City, Province, PostalCode, Name, Latitude, Longitude, Country, Phone, PreferredStore, CustomInfo, ( 6371 * acos( cos( radians('%s') ) * cos( radians( Latitude ) ) * cos( radians( Longitude ) - radians('%s') ) + sin( radians('%s') ) * sin( radians( Latitude ) ) ) ) AS distance FROM %s HAVING distance < '%s' ORDER BY PreferredStore DESC, distance ASC",
+if($storeName == '' || $storeName == 'false')
+{
+    $query = sprintf("SELECT Street, City, Province, PostalCode, Name, Latitude, Longitude, Country, Phone, PreferredStore, CustomInfo,
+                 ( 6371 * acos( cos( radians('%s') ) * cos( radians( Latitude ) ) * cos( radians( Longitude ) - radians('%s') ) + sin( radians('%s') ) * sin( radians( Latitude ) ) ) ) AS distance
+                 FROM %s HAVING distance < '%s' ORDER BY PreferredStore DESC, distance ASC",
     mysql_real_escape_string($center_lat),
     mysql_real_escape_string($center_lng),
     mysql_real_escape_string($center_lat),
     $table_name,
     mysql_real_escape_string($newRadius));
-
+}
+else
+{
+    $query = sprintf("SELECT Street, City, Province, PostalCode, Name, Latitude, Longitude, Country, Phone, PreferredStore, CustomInfo,
+                 ( 6371 * acos( cos( radians('%s') ) * cos( radians( Latitude ) ) * cos( radians( Longitude ) - radians('%s') ) + sin( radians('%s') ) * sin( radians( Latitude ) ) ) ) AS distance
+                 FROM %s WHERE Name LIKE '%%%s%%' HAVING distance < '%s' ORDER BY PreferredStore DESC, distance ASC",
+    mysql_real_escape_string($center_lat),
+    mysql_real_escape_string($center_lng),
+    mysql_real_escape_string($center_lat),
+    $table_name,
+    mysql_real_escape_string($storeName),
+    mysql_real_escape_string($newRadius));
+}
 
 $result = $wpdb->get_results($query);
 
