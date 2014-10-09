@@ -1,10 +1,12 @@
 //akw-store-locator general section styles
 
+document.getElementById('working').style.display = 'inline-block';
 //Declare variables
 var map;
 var markers = [];
 var infoWindow;
 var locationSelect;
+var pos;
 
 //Map is loaded when this js file is called.
 map = new google.maps.Map(document.getElementById("akwMap"), {
@@ -13,24 +15,75 @@ map = new google.maps.Map(document.getElementById("akwMap"), {
   mapTypeId: 'roadmap',
   mapTypeControlOptions: {style: google.maps.MapTypeControlStyle.DROPDOWN_MENU}
 });
+
+//Instantiate info window
 infoWindow = new google.maps.InfoWindow();
+
+// Try HTML5 geolocation
+if(navigator.geolocation)
+{
+    navigator.geolocation.getCurrentPosition(function(position) {
+	pos = new google.maps.LatLng(position.coords.latitude,
+                                       position.coords.longitude);
+    
+    console.log("init pos: "+pos);
+    
+    }, function() {
+      handleNoGeolocation(true);
+    });
+}
+else
+{
+    // Browser doesn't support Geolocation
+    pos = '';
+    handleNoGeolocation(false);
+}
+
+//Setting timeout because in firefox and chrome closing the geolocation share does not work
+setTimeout(function(){ document.getElementById('working').style.display = 'none'; }, 5000);
 
 //Function to search for loacation from address input
 function searchLocations()
 {
-  var address = document.getElementById("addressInput").value;
-  var geocoder = new google.maps.Geocoder();
-  geocoder.geocode({address: address}, function(results, status)
-  {
-    if (status == google.maps.GeocoderStatus.OK)
+    var address = document.getElementById("addressInput").value;
+    
+    if(address != '')
     {
-      searchLocationsNear(results[0].geometry.location);
+	var geocoder = new google.maps.Geocoder();
+	geocoder.geocode({address: address}, function(results, status)
+	{
+	    if (status == google.maps.GeocoderStatus.OK)
+	    {
+		searchLocationsNear(results[0].geometry.location);
+	    }
+	    else
+	    {
+		alert(address + ' not found');
+	    }
+	});
+    }
+    else if(address == '' && (pos != '' && typeof pos != 'undefined'))
+    {
+	searchLocationsNear(pos);
     }
     else
     {
-      alert(address + ' not found');
+	alert('Address field is empty and Current location is not available');
     }
-  });
+}
+
+function handleNoGeolocation(errorFlag)
+{
+    console.log("init pos: empty");
+    if (errorFlag)
+    {
+	var content = 'Error: The Geolocation service failed.';
+    }
+    else
+    {
+	var content = 'Error: Your browser doesn\'t support geolocation.';
+    }
+    alert(content);
 }
 
 //Function to Clear locations before new search
@@ -55,8 +108,9 @@ function searchLocationsNear(center)
 
  var radius = document.getElementById('radiusSelect').value;
  var distanceType = document.getElementById('distanceType').value;
+ var storeName = document.getElementById("nameInput").value;
  
- var searchUrl = akwstorelocatorobject.plugin_url+'/searchStores.php?lat=' + center.lat() + '&lng=' + center.lng() + '&radius=' + radius + '&distType=' + distanceType;
+ var searchUrl = akwstorelocatorobject.plugin_url+'/searchStores.php?lat=' + center.lat() + '&lng=' + center.lng() + '&radius=' + radius + '&distType=' + distanceType + '&storeName=' + storeName;
  downloadUrl(searchUrl, function(data) {
    var xml = parseXml(data);
    var markerNodes = xml.documentElement.getElementsByTagName("marker");
