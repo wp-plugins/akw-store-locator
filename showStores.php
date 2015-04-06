@@ -3,7 +3,7 @@
 Plugin Name: AKW Store Locator
 Plugin URI: http://www.aroundkwhosting.com
 Description: This plugin helps view stores in an area by specifying the radius of search. The admin can add new stores by entering the location, phone number and more. Multiple stores can be uploaded using the csv upload option.
-Version: 1.8
+Version: 1.9
 Author: Around Kitchener Waterloo
 Author URI: http://www.aroundkwhosting.com
 License: GPLv2 or later
@@ -35,12 +35,12 @@ if (!defined('AKWSTORELOCATOR_VERSION_KEY'))
 
 if (!defined('AKWSTORELOCATOR_VERSION_NUM'))
 {
-    define('AKWSTORELOCATOR_VERSION_NUM', '1.7.2');
+    define('AKWSTORELOCATOR_VERSION_NUM', '1.8');
 }
 
 add_option(AKWSTORELOCATOR_VERSION_KEY, AKWSTORELOCATOR_VERSION_NUM);
 
-$new_version = '1.8';
+$new_version = '1.9';
 
 if (get_option(AKWSTORELOCATOR_VERSION_KEY) != $new_version) {
     akwstorelocator_update_database_table();
@@ -734,6 +734,7 @@ function storeLocator_upload_csv_page()
     $table_name = $wpdb->prefix."Stores";
     
     $errMsgs = array();
+    $csvMimeTypes = array("text/csv", "application/vnd.ms-excel", "text/comma-separated-values", "application/csv", "application/excel", "application/vnd.msexcel");
     
     if(isset($_POST['uploadCSV']))
     {
@@ -743,7 +744,7 @@ function storeLocator_upload_csv_page()
         }
         if(count($errMsgs) == 0)
         {
-            if($_FILES["file"]["type"] == "text/csv")
+            if(in_array($_FILES["file"]["type"], $csvMimeTypes))
             {
                 $csvFile = plugin_dir_path(__FILE__).'sqlFile.csv';
                 move_uploaded_file($_FILES["file"]["tmp_name"], $csvFile);
