@@ -2,10 +2,10 @@
 Contributors: AroundKW
 Tags: Store locator, google maps, maps, store finder, store locations, business locator, geocoding, radius, stores, preferred stores
 Author URI: http://www.aroundkwhosting.com/WpPlugins.html
-Version: 1.8
+Version: 1.9
 Requires at least: 3.6
-Tested up to: 4.0
-Stable tag: 1.8
+Tested up to: 4.1.1
+Stable tag: 1.9
 License: GPLv2 or later
 
 Simple, easy to install plugin to view stores around a location. Displays the results using Google map. Result in miles or kilometres.
@@ -78,12 +78,14 @@ The 'Upgrade.php' file needs to be present in the 'wp-admin/includes' folder. Th
 
 == Upgrade Notice ==
 
-= 1.8 =
-* Current location detection.
-* Stores can be searched based on store names.
-* Search for stores in admin section by store name, city, province or country.
+= 1.9 =
+* Fixed issue with uploading of CSV files.
+* Tested for compatibility with latest Wordpress version.
 
 == Changelog ==
+= 1.9 =
+* Fixed issue with uploading of CSV files.
+* Tested for compatibility with latest Wordpress version.
 = 1.8 =
 * Current location detection.
 * Stores can be searched based on store names
